@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Parking Lot - ParkEase Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+                <i class="fas fa-shield-alt me-2"></i>ParkEase Admin
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_users') }}">
+                    <i class="fas fa-users me-1"></i>Users
+                </a>
+                <a class="nav-link active" href="{{ url_for('admin_parking_lots') }}">
+                    <i class="fas fa-parking me-1"></i>Parking Lots
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_search') }}">
+                    <i class="fas fa-search me-1"></i>Search
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_summary') }}">
+                    <i class="fas fa-chart-bar me-1"></i>Summary
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Header -->
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Edit Parking Lot</h1>
+                    <p class="mb-0 opacity-75">Update parking lot information and spot configuration</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('admin_parking_lots') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Parking Lots
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <form action="{{ url_for('admin_edit_parking_lot', lot_id=parking_lot[0]) }}" method="POST">
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ parking_lot[1] }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="price" class="form-label">Hourly Rate (₹)</label>
+                            <input type="number" class="form-control" id="price" name="price" value="{{ parking_lot[2] }}" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="area" class="form-label">Area/Address</label>
+                            <input type="text" class="form-control" id="area" name="area" value="{{ parking_lot[3] }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="pin_code" class="form-label">Pin Code</label>
+                            <input type="text" class="form-control" id="pin_code" name="pin_code" value="{{ parking_lot[4] }}" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="spots" class="form-label">Total Spots</label>
+                            <input type="number" class="form-control" id="spots" name="spots" value="{{ parking_lot[5] }}" min="1" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_parking_lots') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Parking Lot
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Force page refresh when form is submitted successfully
+        document.querySelector('form').addEventListener('submit', function() {
+            // Add a small delay to ensure the form submission completes
+            setTimeout(function() {
+                // Force a hard refresh of the parking lots page
+                window.location.href = "{{ url_for('admin_parking_lots') }}?refresh=" + Date.now();
+            }, 100);
+        });
+    </script>
+</body>
+</html> 

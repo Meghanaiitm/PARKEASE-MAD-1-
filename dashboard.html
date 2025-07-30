@@ -1,0 +1,564 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkEase Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <span class="bg-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;"><i class="fas fa-parking text-white"></i></span>
+                <span class="fw-bold fs-4 text-primary">ParkEase</span>
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="{{ url_for('user_dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="{{ url_for('user_search') }}">
+                    <i class="fas fa-search me-1"></i>Find Parking
+                </a>
+                <a class="nav-link" href="{{ url_for('user_profile') }}">
+                    <i class="fas fa-user me-1"></i>Profile
+                </a>
+                <a class="nav-link" href="{{ url_for('user_summary') }}">
+                    <i class="fas fa-chart-bar me-1"></i>Summary
+                </a>
+                <a class="nav-link" href="{{ url_for('user_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Welcome back, {{ user_info[1] }}!</h1>
+                    <p class="mb-0 opacity-75">Manage your parking bookings and find available spots</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <div class="me-3">
+                            <small class="opacity-75">Vehicle</small>
+                            <div class="fw-bold">{{ user_info[4] }}</div>
+                        </div>
+                        <i class="fas fa-car fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Total Bookings</h6>
+                                <h3 class="mb-0 fw-bold">{{ total_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-calendar-check fa-2x text-primary opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card active h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Active</h6>
+                                <h3 class="mb-0 fw-bold">{{ active_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-clock fa-2x text-success opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card completed h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Completed</h6>
+                                <h3 class="mb-0 fw-bold">{{ completed_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-check-circle fa-2x text-warning opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card cancelled h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Cancelled</h6>
+                                <h3 class="mb-0 fw-bold">{{ cancelled_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-times-circle fa-2x text-danger opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">
+                            <i class="fas fa-list me-2"></i>My Bookings
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="new-booking-tab" data-bs-toggle="tab" data-bs-target="#new-booking" type="button" role="tab">
+                            <i class="fas fa-plus me-2"></i>Book New Spot
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-4" id="dashboardTabsContent">
+                    <div class="tab-pane fade show active" id="bookings" role="tabpanel">
+                        {% if current_bookings %}
+                        <h5 class="section-title">
+                            <i class="fas fa-clock me-2 text-success"></i>Current Bookings
+                        </h5>
+                        <div class="row">
+                            {% for booking in current_bookings %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="booking-card" data-created-at="{{ booking[4] }}" data-price="{{ booking[6] }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">Spot {{ booking[2] }}</h6>
+                                            <p class="text-muted mb-0">{{ booking[5] }}</p>
+                                            {% if booking[7] %}
+                                                <small class="text-muted">Vehicle: {{ booking[7] }} ({{ booking[8] }})</small>
+                                            {% endif %}
+                                        </div>
+                                        <span class="status-badge status-{{ booking[3] }}">
+                                            {{ booking[3].title() }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">Price</small>
+                                            <div class="fw-bold">₹{{ booking[6] }}/hr</div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <form action="{{ url_for('cancel_booking') }}" method="POST" style="display:inline;">
+                                                <input type="hidden" name="booking_id" value="{{ booking[0] }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                                    <i class="fas fa-times me-1"></i>Cancel
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-success btn-sm" data-booking-id="{{ booking[0] }}" data-spot-id="{{ booking[2] }}" data-vehicle="{{ booking[7]|default('') }}" data-booking-time="{{ booking[4] }}" data-price="{{ booking[6] }}" onclick="openReleaseModalFromButton(this)">
+                                                <i class="fas fa-check me-1"></i>Complete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Previous Bookings -->
+                        {% if previous_bookings %}
+                        <h5 class="section-title mt-4">
+                            <i class="fas fa-history me-2 text-muted"></i>Previous Bookings
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Spot</th>
+                                        <th>Location</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in previous_bookings %}
+                                    <tr>
+                                        <td>#{{ booking[0] }}</td>
+                                        <td>{{ booking[2] }}</td>
+                                        <td>{{ booking[5] }}</td>
+                                        <td>₹{{ booking[6] }}/hr</td>
+                                        <td>
+                                            <span class="status-badge status-{{ booking[3] }}">
+                                                {{ booking[3].title() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+
+                        {% if not current_bookings and not previous_bookings %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No bookings found</h5>
+                            <p class="text-muted">Start by booking your first parking spot!</p>
+                            <button class="btn btn-primary btn-modern" onclick="switchToBookingTab()">
+                                <i class="fas fa-plus me-2"></i>Book a Spot
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- New Booking Tab -->
+                    <div class="tab-pane fade" id="new-booking" role="tabpanel">
+                        <h5 class="section-title">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>Book a Parking Spot
+                        </h5>
+                        
+                        <form action="{{ url_for('book_spot') }}" method="POST" class="row g-3" id="bookingForm">
+                            <input type="hidden" name="user_id" value="{{ user_info[0] }}">
+                            <input type="hidden" name="lot_id" id="hidden_lot_id" value="">
+                            <input type="hidden" name="spot_id" id="hidden_spot_id" value="">
+                            <div class="col-md-6">
+                                <label for="lot_id" class="form-label">Parking Lot</label>
+                                <select name="lot_id_select" id="lot_id" class="form-select" required>
+                                    <option value="">Select a parking lot</option>
+                                    {% for lot in parking_lots %}
+                                    <option value="{{ lot[0] }}">{{ lot[1] }} - ₹{{ lot[2] }}/hr</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="spot_number" class="form-label">Spot Number</label>
+                                <select name="spot_number" id="spot_number" class="form-select" required>
+                                    <option value="">Select a parking lot first</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="vehicle_id" class="form-label">Select Vehicle</label>
+                                <select name="vehicle_id" id="vehicle_id" class="form-select" required>
+                                    <option value="">Choose a vehicle</option>
+                                    {% if vehicles %}
+                                        {% for vehicle in vehicles %}
+                                            <option value="{{ vehicle[0] }}" {% if vehicle[4] %}selected{% endif %}>
+                                                {{ vehicle[1] }} ({{ vehicle[2] }}{% if vehicle[3] %} - {{ vehicle[3] }}{% endif %})
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="booking_time" class="form-label">Booking Time</label>
+                                <input type="text" class="form-control" id="booking_time" name="booking_time" readonly>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-modern">
+                                    <i class="fas fa-check me-2"></i>Book Spot
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="spots-preview" class="mt-4" style="display: none;">
+                            <h6 class="mb-3">Available Spots</h6>
+                            <div id="spots-grid" class="row g-2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-action">
+        <button class="btn btn-primary btn-lg rounded-circle shadow" onclick="switchToBookingTab()" title="Book New Spot">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <div class="modal fade" id="releaseModal" tabindex="-1" aria-labelledby="releaseModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="releaseForm" method="POST" action="{{ url_for('release_booking') }}">
+            <div class="modal-header">
+              <h5 class="modal-title" id="releaseModalLabel">Release the parking spot</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" name="booking_id" id="release_booking_id">
+              <div class="mb-3">
+                <label class="form-label">Spot ID</label>
+                <input type="text" class="form-control" id="release_spot_id" name="spot_id" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Vehicle Number</label>
+                <input type="text" class="form-control" id="release_vehno" name="vehno" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Parking Time</label>
+                <input type="text" class="form-control" id="release_parking_time" name="parking_time" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Releasing Time</label>
+                <input type="text" class="form-control" id="release_releasing_time" name="releasing_time" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Total Cost</label>
+                <input type="text" class="form-control" id="release_total_cost" name="total_cost" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Price per hour</label>
+                <input type="text" class="form-control" id="release_price_per_hour" name="price_per_hour" readonly>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Release</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="bookSpotModal" tabindex="-1" aria-labelledby="bookSpotModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="bookSpotForm" method="POST" action="{{ url_for('book_spot') }}">
+            <div class="modal-header" style="background:#fffbe6;">
+              <h5 class="modal-title fw-bold" id="bookSpotModalLabel">Book the parking spot</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2">
+                <label class="form-label">Spot ID :</label>
+                <input type="text" class="form-control" id="modal_spot_id" name="spot_id" readonly>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Lot ID :</label>
+                <input type="text" class="form-control" id="modal_lot_id" name="lot_id" readonly>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">User ID :</label>
+                <input type="text" class="form-control" id="modal_user_id" name="user_id" value="{{ user_info[0] }}" readonly>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Vehicle Number :</label>
+                <input type="text" class="form-control" id="modal_vehno" name="vehno" value="{{ user_info[4] }}" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Reserve</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Store user info in JavaScript variables
+        const userVehicle = '{{ user_info[4]|default("") }}';
+        // Switch to booking tab
+        function switchToBookingTab() {
+            const bookingTab = new bootstrap.Tab(document.getElementById('new-booking-tab'));
+            bookingTab.show();
+        }
+
+        // Load spots when parking lot is selected
+        document.getElementById('lot_id').addEventListener('change', function() {
+            const lotId = this.value;
+            const spotSelect = document.getElementById('spot_number');
+            const spotsPreview = document.getElementById('spots-preview');
+            
+            if (lotId) {
+                // Show loading state
+                spotSelect.innerHTML = '<option value="">Loading spots...</option>';
+                
+                // Fetch available spots for the selected lot
+                fetch(`/api/get_spots/${lotId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Spots data:', data); // Debug log
+                        spotSelect.innerHTML = '<option value="">Select a spot</option>';
+                        
+                        if (data.spots && data.spots.length > 0) {
+                            const availableSpots = data.spots.filter(spot => spot.status === 'A');
+                            console.log('Available spots:', availableSpots); // Debug log
+                            
+                            if (availableSpots.length > 0) {
+                                availableSpots.forEach(spot => {
+                                    const option = document.createElement('option');
+                                    option.value = spot.id; // Use spot ID instead of spot_number
+                                    option.textContent = `Spot ${spot.spot_number} (Level ${spot.level})`;
+                                    spotSelect.appendChild(option);
+                                });
+
+                                // Show spots preview
+                                showSpotsPreview(availableSpots);
+                            } else {
+                                spotSelect.innerHTML = '<option value="">No available spots</option>';
+                                spotsPreview.style.display = 'none';
+                            }
+                        } else {
+                            spotSelect.innerHTML = '<option value="">No spots found</option>';
+                            spotsPreview.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading spots:', error);
+                        spotSelect.innerHTML = '<option value="">Error loading spots</option>';
+                        spotsPreview.style.display = 'none';
+                    });
+            } else {
+                spotSelect.innerHTML = '<option value="">Select a parking lot first</option>';
+                spotsPreview.style.display = 'none';
+            }
+        });
+
+        function showSpotsPreview(spots) {
+            const spotsGrid = document.getElementById('spots-grid');
+            const spotsPreview = document.getElementById('spots-preview');
+            
+            spotsGrid.innerHTML = '';
+            
+            spots.forEach(spot => {
+                const spotCard = document.createElement('div');
+                spotCard.className = 'col-md-2 col-sm-3 col-4';
+                spotCard.innerHTML = `
+                    <div class="card text-center p-2">
+                        <div class="text-success">
+                            <i class="fas fa-parking fa-lg"></i>
+                        </div>
+                        <small class="fw-bold">${spot.spot_number}</small>
+                        <small class="text-muted d-block">Level ${spot.level}</small>
+                    </div>
+                `;
+                spotsGrid.appendChild(spotCard);
+            });
+            
+            spotsPreview.style.display = 'block';
+        }
+
+        // Update hidden fields when lot or spot is selected
+        const lotSelect = document.getElementById('lot_id');
+        const spotSelect = document.getElementById('spot_number');
+        const hiddenLotId = document.getElementById('hidden_lot_id');
+        const hiddenSpotId = document.getElementById('hidden_spot_id');
+        lotSelect.addEventListener('change', function() {
+            hiddenLotId.value = this.value;
+        });
+        spotSelect.addEventListener('change', function() {
+            hiddenSpotId.value = this.value;
+        });
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        function openReleaseModalFromButton(button) {
+            const bookingId = button.getAttribute('data-booking-id');
+            const spotId = button.getAttribute('data-spot-id');
+            const vehno = button.getAttribute('data-vehicle');
+            const bookingTime = button.getAttribute('data-booking-time');
+            const pricePerHour = button.getAttribute('data-price');
+            openReleaseModal(bookingId, spotId, vehno, bookingTime, pricePerHour);
+        }
+
+        function openReleaseModal(bookingId, spotId, vehno, bookingTime, pricePerHour) {
+            // bookingTime is from the database (created_at)
+            const now = new Date();
+            const releasingTime = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+            const start = new Date(bookingTime.replace(' ', 'T'));
+            let hours = Math.abs(now - start) / 36e5;
+            hours = Math.ceil(hours); // round up to next hour
+            const totalCost = (hours * pricePerHour).toFixed(2);
+            document.getElementById('release_booking_id').value = bookingId;
+            document.getElementById('release_spot_id').value = spotId;
+            document.getElementById('release_vehno').value = vehno || userVehicle;
+            document.getElementById('release_parking_time').value = bookingTime;
+            document.getElementById('release_releasing_time').value = releasingTime;
+            document.getElementById('release_total_cost').value = totalCost;
+            document.getElementById('release_price_per_hour').value = pricePerHour;
+            var releaseModal = new bootstrap.Modal(document.getElementById('releaseModal'));
+            releaseModal.show();
+        }
+        // Attach to Complete buttons
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-success.btn-sm').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const bookingId = this.closest('form').querySelector('input[name="booking_id"]').value;
+                    const card = this.closest('.booking-card');
+                    const spotId = card.querySelector('h6').textContent.replace('Spot ', '').trim();
+                    const bookingTime = card.getAttribute('data-created-at');
+                    const pricePerHour = card.getAttribute('data-price');
+                    
+                    // Get vehicle info from the card if available
+                    const vehicleInfo = card.querySelector('small.text-muted');
+                    let vehno = userVehicle; // fallback to primary vehicle
+                    if (vehicleInfo && vehicleInfo.textContent.includes('Vehicle:')) {
+                        vehno = vehicleInfo.textContent.split('Vehicle:')[1].split('(')[0].trim();
+                    }
+                    
+                    openReleaseModal(bookingId, spotId, vehno, bookingTime, pricePerHour);
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting booking time...');
+            var bookingTimeInput = document.getElementById('booking_time');
+            console.log('Booking time input found:', bookingTimeInput);
+            if (bookingTimeInput) {
+                var now = new Date();
+                var formatted = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+                console.log('Setting booking time to:', formatted);
+                bookingTimeInput.value = formatted;
+                console.log('Booking time set successfully');
+                
+                // Add visual feedback
+                bookingTimeInput.style.backgroundColor = '#d4edda';
+                bookingTimeInput.style.borderColor = '#28a745';
+                setTimeout(function() {
+                    bookingTimeInput.style.backgroundColor = '';
+                    bookingTimeInput.style.borderColor = '';
+                }, 2000);
+            } else {
+                console.error('Booking time input not found!');
+            }
+        });
+    </script>
+</body>
+</html>

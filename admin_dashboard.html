@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ParkEase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+                <i class="fas fa-shield-alt me-2"></i>ParkEase Admin
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="{{ url_for('admin_dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_users') }}">
+                    <i class="fas fa-users me-1"></i>Users
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_parking_lots') }}">
+                    <i class="fas fa-parking me-1"></i>Parking Lots
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_search') }}">
+                    <i class="fas fa-search me-1"></i>Search
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_summary') }}">
+                    <i class="fas fa-chart-bar me-1"></i>Summary
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Welcome to Admin</h1>
+                    <p class="mb-0 opacity-75">Manage your parking system efficiently</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <div class="me-3">
+                            <small class="opacity-75">Admin ID</small>
+                            <div class="fw-bold">{{ session.admin_id }}</div>
+                        </div>
+                        <i class="fas fa-user-shield fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Total Users</h6>
+                                <h3 class="mb-0 fw-bold">{{ total_users }}</h3>
+                            </div>
+                            <i class="fas fa-users fa-2x text-primary opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card success h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Parking Lots</h6>
+                                <h3 class="mb-0 fw-bold">{{ total_parking_lots }}</h3>
+                            </div>
+                            <i class="fas fa-parking fa-2x text-success opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card warning h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Total Bookings</h6>
+                                <h3 class="mb-0 fw-bold">{{ total_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-calendar-check fa-2x text-warning opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card danger h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="text-muted mb-1">Active Bookings</h6>
+                                <h3 class="mb-0 fw-bold">{{ active_bookings }}</h3>
+                            </div>
+                            <i class="fas fa-clock fa-2x text-danger opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-parking me-2"></i>Parking Lots
+                        </h5>
+                        <a href="{{ url_for('admin_add_parking_lot') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add Lot
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% for lot in parking_lots %}
+                        <div class="parking-lot-card">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">{{ lot[1] }}</h6>
+                                    <p class="text-muted mb-0">{{ lot[3] }} • ₹{{ lot[2] }}/hr</p>
+                                    <small class="text-muted">Pin: {{ lot[4] }}</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="fw-bold">{{ lot[5] }}</div>
+                                        <small class="text-muted">Total Spots</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex justify-content-end">
+                                        <a href="{{ url_for('admin_edit_parking_lot', lot_id=lot[0]) }}" class="btn btn-warning btn-sm me-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ url_for('admin_delete_parking_lot', lot_id=lot[0]) }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Recent Activity
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for booking in recent_bookings %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-car text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">{{ booking[2] }}</h6>
+                                <p class="text-muted mb-0">{{ booking[5] }} • Spot {{ booking[4] }}</p>
+                                <small class="text-muted">{{ booking[6] }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html> 

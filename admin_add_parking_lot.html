@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Add Parking Lot - ParkEase Admin{% endblock %}
+
+{% block navigation %}
+    {% include 'components/admin_nav.html' %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    {% include 'components/page_header.html' with context %}
+
+    <!-- Add Parking Lot Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>New Parking Lot Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_add_parking_lot') }}" method="POST">
+                        <!-- Basic Information -->
+                        {% set icon = 'info-circle' %}
+                        {% set title = 'Basic Information' %}
+                        {% set content %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Prime Location Name</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       placeholder="e.g., K. Gadgil Marg, Dadar Road" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="area" class="form-label">Area/Address</label>
+                                <input type="text" class="form-control" id="area" name="area" 
+                                       placeholder="e.g., Wadala, Mumbai" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pin_code" class="form-label">Pin Code</label>
+                                <input type="text" class="form-control" id="pin_code" name="pin_code" 
+                                       placeholder="e.g., 400100" value="400100" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="price" class="form-label">Price (per hour)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           placeholder="20" value="20" min="1" step="0.5" required>
+                                </div>
+                            </div>
+                        </div>
+                        {% endset %}
+                        {% include 'components/form_section.html' %}
+
+                        <!-- Capacity & Spots -->
+                        {% set icon = 'parking' %}
+                        {% set title = 'Capacity & Spots' %}
+                        {% set content %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="spots" class="form-label">Maximum Spots</label>
+                                <input type="number" class="form-control" id="spots" name="spots" 
+                                       placeholder="15" value="15" min="1" max="100" required>
+                                <small class="text-muted">Number of parking spots in this lot</small>
+                            </div>
+                        </div>
+                        {% endset %}
+                        {% include 'components/form_section.html' %}
+
+                        <!-- Form Actions -->
+                        {% set cancel_url = url_for('admin_parking_lots') %}
+                        {% set submit_icon = 'plus' %}
+                        {% set submit_text = 'Add Parking Lot' %}
+                        {% include 'components/form_actions.html' %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const price = document.getElementById('price').value;
+        const spots = document.getElementById('spots').value;
+        
+        if (price <= 0) {
+            e.preventDefault();
+            alert('Price must be greater than 0');
+            return false;
+        }
+        
+        if (spots <= 0 || spots > 100) {
+            e.preventDefault();
+            alert('Number of spots must be between 1 and 100');
+            return false;
+        }
+    });
+</script>
+{% endblock %} 

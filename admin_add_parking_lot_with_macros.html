@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "components/form_macros.html" import input_field, price_field, card %}
+
+{% block title %}Add Parking Lot - ParkEase Admin{% endblock %}
+
+{% block navigation %}
+    {% include 'components/admin_nav.html' %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    {% include 'components/page_header.html' with context %}
+
+    <!-- Add Parking Lot Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% call card("New Parking Lot Details", "plus") %}
+                <form action="{{ url_for('admin_add_parking_lot') }}" method="POST">
+                    <!-- Basic Information -->
+                    {% set icon = 'info-circle' %}
+                    {% set title = 'Basic Information' %}
+                    {% set content %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ input_field('location', 'Prime Location Name', 
+                                          placeholder='e.g., K. Gadgil Marg, Dadar Road') }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ input_field('area', 'Area/Address', 
+                                          placeholder='e.g., Wadala, Mumbai') }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ input_field('pin_code', 'Pin Code', 
+                                          placeholder='e.g., 400100', value='400100') }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ price_field('price', 'Price (per hour)', 
+                                          placeholder='20', value='20') }}
+                        </div>
+                    </div>
+                    {% endset %}
+                    {% include 'components/form_section.html' %}
+
+                    <!-- Capacity & Spots -->
+                    {% set icon = 'parking' %}
+                    {% set title = 'Capacity & Spots' %}
+                    {% set content %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ input_field('spots', 'Maximum Spots', 'number',
+                                          placeholder='15', value='15', 
+                                          extra_attrs='min="1" max="100"') }}
+                            <small class="text-muted">Number of parking spots in this lot</small>
+                        </div>
+                    </div>
+                    {% endset %}
+                    {% include 'components/form_section.html' %}
+
+                    <!-- Form Actions -->
+                    {% set cancel_url = url_for('admin_parking_lots') %}
+                    {% set submit_icon = 'plus' %}
+                    {% set submit_text = 'Add Parking Lot' %}
+                    {% include 'components/form_actions.html' %}
+                </form>
+            {% endcall %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const price = document.getElementById('price').value;
+        const spots = document.getElementById('spots').value;
+        
+        if (price <= 0) {
+            e.preventDefault();
+            alert('Price must be greater than 0');
+            return false;
+        }
+        
+        if (spots <= 0 || spots > 100) {
+            e.preventDefault();
+            alert('Number of spots must be between 1 and 100');
+            return false;
+        }
+    });
+</script>
+{% endblock %} 

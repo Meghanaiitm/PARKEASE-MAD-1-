@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Summary - ParkEase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .summary-hero {
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .chart-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .chart-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+        
+        .donut-chart {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.02);
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .donut-chart {
+                height: 300px;
+            }
+            
+            .chart-container {
+                margin: 0 1rem;
+                padding: 1.5rem;
+            }
+            
+            .chart-legend {
+                gap: 0.5rem;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('user_dashboard') }}">
+                <span class="bg-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;"><i class="fas fa-parking text-white"></i></span>
+                <span class="fw-bold fs-4 text-primary">ParkEase</span>
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="{{ url_for('user_dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="{{ url_for('user_search') }}">
+                    <i class="fas fa-search me-1"></i>Find Parking
+                </a>
+                <a class="nav-link" href="{{ url_for('user_profile') }}">
+                    <i class="fas fa-user me-1"></i>Profile
+                </a>
+                <a class="nav-link active" href="{{ url_for('user_summary') }}">
+                    <i class="fas fa-chart-bar me-1"></i>Summary
+                </a>
+                <a class="nav-link" href="{{ url_for('user_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Hero Section -->
+        <div class="summary-hero">
+            <h1 class="mb-3">
+                <i class="fas fa-chart-pie me-3"></i>
+                Your Booking Summary
+            </h1>
+            <p class="mb-0">Visualize your parking booking patterns across all vehicles</p>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Booking Distribution by Date -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-calendar me-2"></i>
+                    Bookings by Date
+                </h3>
+                
+                {% if labels and data %}
+                    <div class="donut-chart">
+                        <canvas id="dateChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="dateChartLegend"></div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <h4>No Bookings Yet</h4>
+                        <p>Start booking parking spots to see your summary here!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Booking Distribution by Vehicle -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-car me-2"></i>
+                    Bookings by Vehicle
+                </h3>
+                
+
+                
+                {% if vehicle_labels and vehicle_data %}
+                    <div class="donut-chart">
+                        <canvas id="vehicleChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="vehicleChartLegend"></div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <h4>No Vehicle Data</h4>
+                        <p>Add vehicles to your profile to see vehicle-specific analytics!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Color palette for charts
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
+        ];
+
+        {% if labels and data %}
+        // Date Chart
+        const dateCtx = document.getElementById('dateChart').getContext('2d');
+        const dateChartData = {
+            labels: {{ labels|tojson }},
+            datasets: [{
+                data: {{ data|tojson }},
+                backgroundColor: colors.slice(0, {% if labels %}{{ labels|length }}{% else %}0{% endif %}),
+                borderColor: '#fff',
+                borderWidth: 3,
+                hoverBorderWidth: 5,
+                cutout: '60%'
+            }]
+        };
+
+        const dateConfig = {
+            type: 'doughnut',
+            data: dateChartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#0D6EFD',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} bookings (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        };
+
+        new Chart(dateCtx, dateConfig);
+
+        // Create date chart legend
+        const dateLegend = document.getElementById('dateChartLegend');
+        {{ labels|tojson }}.forEach((label, index) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <div class="legend-color" style="background-color: ${colors[index]}"></div>
+                <span>${label}</span>
+            `;
+            dateLegend.appendChild(legendItem);
+        });
+        {% endif %}
+
+        {% if vehicle_labels and vehicle_data %}
+        // Vehicle Chart
+        const vehicleCtx = document.getElementById('vehicleChart').getContext('2d');
+        const vehicleChartData = {
+            labels: {{ vehicle_labels|tojson }},
+            datasets: [{
+                data: {{ vehicle_data|tojson }},
+                backgroundColor: colors.slice(0, {% if vehicle_labels %}{{ vehicle_labels|length }}{% else %}0{% endif %}),
+                borderColor: '#fff',
+                borderWidth: 3,
+                hoverBorderWidth: 5,
+                cutout: '60%'
+            }]
+        };
+
+        const vehicleConfig = {
+            type: 'doughnut',
+            data: vehicleChartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#0D6EFD',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} bookings (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        };
+
+        new Chart(vehicleCtx, vehicleConfig);
+
+        // Create vehicle chart legend
+        const vehicleLegend = document.getElementById('vehicleChartLegend');
+        {{ vehicle_labels|tojson }}.forEach((label, index) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <div class="legend-color" style="background-color: ${colors[index]}"></div>
+                <span>${label}</span>
+            `;
+            vehicleLegend.appendChild(legendItem);
+        });
+        {% endif %}
+    </script>
+</body>
+</html> 

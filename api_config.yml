@@ -1,0 +1,519 @@
+app:
+  name: "ParkEase Parking Management System"
+  version: "1.0.0"
+  description: "A comprehensive parking management system with user and admin interfaces"
+  base_url: "http://localhost:5000"
+
+# Database Configuration
+database:
+  type: "sqlite"
+  file: "parking.db"
+  tables:
+    - users
+    - parking_lots
+    - parking_spots
+    - bookings
+    - vehicles
+    - admins
+
+# Authentication & Security
+security:
+  session_timeout: 3600  
+  password_min_length: 6
+  admin_required_endpoints:
+    - "/admin/*"
+  user_required_endpoints:
+    - "/user/*"
+    - "/dashboard"
+    - "/profile"
+
+# API Endpoints Configuration
+endpoints:
+  
+  # Public Routes
+  public:
+    home:
+      path: "/"
+      method: "GET"
+      description: "Landing page with login/register options"
+      template: "home.html"
+      
+    user_register:
+      path: "/user/register"
+      method: ["GET", "POST"]
+      description: "User registration endpoint"
+      template: "register.html"
+      form_fields:
+        - name: "name"
+          type: "text"
+          required: true
+        - name: "email"
+          type: "email"
+          required: true
+        - name: "password"
+          type: "password"
+          required: true
+        - name: "phone"
+          type: "tel"
+          required: true
+          
+    user_login:
+      path: "/user/login"
+      method: ["GET", "POST"]
+      description: "User login endpoint"
+      template: "login.html"
+      form_fields:
+        - name: "email"
+          type: "email"
+          required: true
+        - name: "password"
+          type: "password"
+          required: true
+          
+    admin_login:
+      path: "/admin/login"
+      method: ["GET", "POST"]
+      description: "Admin login endpoint"
+      template: "admin_login.html"
+      form_fields:
+        - name: "username"
+          type: "text"
+          required: true
+        - name: "password"
+          type: "password"
+          required: true
+
+  # User Routes 
+  user:
+    dashboard:
+      path: "/user/dashboard"
+      method: "GET"
+      description: "User dashboard with parking options"
+      template: "dashboard.html"
+      requires_auth: true
+      
+    book_spot:
+      path: "/user/book_spot"
+      method: "POST"
+      description: "Book a parking spot"
+      requires_auth: true
+      form_fields:
+        - name: "spot_id"
+          type: "hidden"
+          required: true
+        - name: "vehicle_id"
+          type: "hidden"
+          required: true
+          
+    cancel_booking:
+      path: "/user/cancel_booking"
+      method: "POST"
+      description: "Cancel a parking booking"
+      requires_auth: true
+      form_fields:
+        - name: "booking_id"
+          type: "hidden"
+          required: true
+          
+    complete_booking:
+      path: "/user/complete_booking"
+      method: "POST"
+      description: "Complete a parking booking"
+      requires_auth: true
+      form_fields:
+        - name: "booking_id"
+          type: "hidden"
+          required: true
+          
+    release_booking:
+      path: "/user/release_booking"
+      method: "POST"
+      description: "Release a parking spot"
+      requires_auth: true
+      form_fields:
+        - name: "spot_id"
+          type: "hidden"
+          required: true
+          
+    profile:
+      path: "/user/profile"
+      method: "GET"
+      description: "User profile page"
+      template: "profile.html"
+      requires_auth: true
+      
+    update_profile:
+      path: "/user/update_profile"
+      method: "POST"
+      description: "Update user profile information"
+      requires_auth: true
+      form_fields:
+        - name: "name"
+          type: "text"
+          required: true
+        - name: "email"
+          type: "email"
+          required: true
+        - name: "phone"
+          type: "tel"
+          required: true
+          
+    change_password:
+      path: "/user/change_password"
+      method: "POST"
+      description: "Change user password"
+      requires_auth: true
+      form_fields:
+        - name: "current_password"
+          type: "password"
+          required: true
+        - name: "new_password"
+          type: "password"
+          required: true
+        - name: "confirm_password"
+          type: "password"
+          required: true
+          
+    add_vehicle:
+      path: "/user/add_vehicle"
+      method: "POST"
+      description: "Add a new vehicle to user account"
+      requires_auth: true
+      form_fields:
+        - name: "vehicle_number"
+          type: "text"
+          required: true
+        - name: "vehicle_type"
+          type: "text"
+          required: true
+        - name: "model"
+          type: "text"
+          required: true
+          
+    update_vehicle:
+      path: "/user/update_vehicle"
+      method: "POST"
+      description: "Update vehicle information"
+      requires_auth: true
+      form_fields:
+        - name: "vehicle_id"
+          type: "hidden"
+          required: true
+        - name: "vehicle_number"
+          type: "text"
+          required: true
+        - name: "vehicle_type"
+          type: "text"
+          required: true
+        - name: "model"
+          type: "text"
+          required: true
+          
+    delete_vehicle:
+      path: "/user/delete_vehicle"
+      method: "POST"
+      description: "Delete a vehicle from user account"
+      requires_auth: true
+      form_fields:
+        - name: "vehicle_id"
+          type: "hidden"
+          required: true
+          
+    set_primary_vehicle:
+      path: "/user/set_primary_vehicle"
+      method: "POST"
+      description: "Set a vehicle as primary"
+      requires_auth: true
+      form_fields:
+        - name: "vehicle_id"
+          type: "hidden"
+          required: true
+          
+    user_search:
+      path: "/user/search"
+      method: "GET"
+      description: "Search for parking lots"
+      template: "user_search.html"
+      requires_auth: true
+      query_parameters:
+        - name: "location"
+          type: "string"
+          description: "Search by location"
+        - name: "price_min"
+          type: "number"
+          description: "Minimum price filter"
+        - name: "price_max"
+          type: "number"
+          description: "Maximum price filter"
+          
+    user_summary:
+      path: "/user/summary"
+      method: "GET"
+      description: "User booking summary and statistics"
+      template: "user_summary.html"
+      requires_auth: true
+      
+    user_logout:
+      path: "/user/logout"
+      method: "GET"
+      description: "User logout endpoint"
+      requires_auth: true
+
+  # Admin Routes 
+    admin_dashboard:
+      path: "/admin/dashboard"
+      method: "GET"
+      description: "Admin dashboard with system overview"
+      template: "admin_dashboard.html"
+      requires_admin: true
+      
+    admin_users:
+      path: "/admin/users"
+      method: "GET"
+      description: "List all users"
+      template: "admin_users.html"
+      requires_admin: true
+      
+    admin_parking_lots:
+      path: "/admin/parking-lots"
+      method: "GET"
+      description: "List all parking lots"
+      template: "admin_parking_lots.html"
+      requires_admin: true
+      
+    admin_add_parking_lot:
+      path: "/admin/add-parking-lot"
+      method: ["GET", "POST"]
+      description: "Add new parking lot"
+      template: "admin_add_parking_lot.html"
+      requires_admin: true
+      form_fields:
+        - name: "location"
+          type: "text"
+          required: true
+        - name: "area"
+          type: "text"
+          required: true
+        - name: "pin_code"
+          type: "text"
+          required: true
+        - name: "price"
+          type: "number"
+          required: true
+        - name: "spots"
+          type: "number"
+          required: true
+          
+    admin_edit_parking_lot:
+      path: "/admin/edit-parking-lot/<int:lot_id>"
+      method: ["GET", "POST"]
+      description: "Edit existing parking lot"
+      template: "admin_edit_parking_lot.html"
+      requires_admin: true
+      
+    admin_delete_parking_lot:
+      path: "/admin/delete-parking-lot/<int:lot_id>"
+      method: "POST"
+      description: "Delete parking lot"
+      requires_admin: true
+      
+    admin_add_user:
+      path: "/admin/add-user"
+      method: ["GET", "POST"]
+      description: "Add new user"
+      template: "admin_add_user.html"
+      requires_admin: true
+      
+    admin_edit_user:
+      path: "/admin/edit-user/<int:user_id>"
+      method: ["GET", "POST"]
+      description: "Edit user information"
+      template: "admin_edit_user.html"
+      requires_admin: true
+      
+    admin_delete_user:
+      path: "/admin/delete-user/<int:user_id>"
+      method: "POST"
+      description: "Delete user"
+      requires_admin: true
+      
+    admin_search:
+      path: "/admin/search"
+      method: "GET"
+      description: "Admin search functionality"
+      template: "admin_search.html"
+      requires_admin: true
+      query_parameters:
+        - name: "type"
+          type: "string"
+          description: "Search type (users, parking_lots, bookings)"
+        - name: "category"
+          type: "string"
+          description: "Search category"
+        - name: "q"
+          type: "string"
+          description: "Search query"
+          
+    admin_summary:
+      path: "/admin/summary"
+      method: "GET"
+      description: "Admin system summary and statistics"
+      template: "admin_summary.html"
+      requires_admin: true
+      
+    admin_logout:
+      path: "/admin/logout"
+      method: "GET"
+      description: "Admin logout endpoint"
+      requires_admin: true
+
+  # API Routes 
+  api:
+    get_spots:
+      path: "/api/get_spots/<int:lot_id>"
+      method: "GET"
+      description: "Get parking spots for a specific lot"
+      response_type: "JSON"
+      parameters:
+        - name: "lot_id"
+          type: "integer"
+          required: true
+          description: "Parking lot ID"
+          
+    admin_lot_spots:
+      path: "/api/admin/lot_spots/<int:lot_id>"
+      method: "GET"
+      description: "Get detailed spot information for admin"
+      response_type: "JSON"
+      requires_admin: true
+      parameters:
+        - name: "lot_id"
+          type: "integer"
+          required: true
+          description: "Parking lot ID"
+          
+    admin_spot_details:
+      path: "/api/admin/spot_details/<int:spot_id>"
+      method: "GET"
+      description: "Get detailed information about a specific spot"
+      response_type: "JSON"
+      requires_admin: true
+      parameters:
+        - name: "spot_id"
+          type: "integer"
+          required: true
+          description: "Parking spot ID"
+          
+    booking_details:
+      path: "/api/booking_details/<int:booking_id>"
+      method: "GET"
+      description: "Get booking details"
+      response_type: "JSON"
+      parameters:
+        - name: "booking_id"
+          type: "integer"
+          required: true
+          description: "Booking ID"
+
+# Error Handling
+error_handling:
+  404:
+    template: "404.html"
+    message: "Page not found"
+  500:
+    template: "500.html"
+    message: "Internal server error"
+  unauthorized:
+    redirect: "/user/login"
+    message: "Please login to access this page"
+  forbidden:
+    redirect: "/admin/login"
+    message: "Admin access required"
+
+# Flash Messages Configuration
+flash_messages:
+  success:
+    user_registered: "Registration successful! Please login."
+    user_logged_in: "Welcome back!"
+    booking_created: "Spot booked successfully!"
+    booking_cancelled: "Booking cancelled successfully!"
+    profile_updated: "Profile updated successfully!"
+    password_changed: "Password changed successfully!"
+    vehicle_added: "Vehicle added successfully!"
+    parking_lot_added: "Parking lot added successfully!"
+    parking_lot_updated: "Parking lot updated successfully!"
+    parking_lot_deleted: "Parking lot deleted successfully!"
+    
+  error:
+    invalid_credentials: "Invalid email or password."
+    user_exists: "User with this email already exists."
+    spot_unavailable: "This spot is not available."
+    booking_not_found: "Booking not found."
+    insufficient_balance: "Insufficient balance."
+    admin_required: "Admin access required."
+    invalid_input: "Please check your input and try again."
+
+# Database Schema 
+database_schema:
+  users:
+    - id (INTEGER PRIMARY KEY)
+    - name (TEXT)
+    - email (TEXT UNIQUE)
+    - password (TEXT)
+    - phone (TEXT)
+    - created_at (TIMESTAMP)
+    
+  parking_lots:
+    - id (INTEGER PRIMARY KEY)
+    - location (TEXT)
+    - area (TEXT)
+    - pin_code (TEXT)
+    - price (REAL)
+    - created_at (TIMESTAMP)
+    
+  parking_spots:
+    - id (INTEGER PRIMARY KEY)
+    - lot_id (INTEGER)
+    - spot_number (TEXT)
+    - status (TEXT)
+    - created_at (TIMESTAMP)
+    
+  bookings:
+    - id (INTEGER PRIMARY KEY)
+    - user_id (INTEGER)
+    - spot_id (INTEGER)
+    - vehicle_id (INTEGER)
+    - start_time (TIMESTAMP)
+    - end_time (TIMESTAMP)
+    - status (TEXT)
+    - amount (REAL)
+    - created_at (TIMESTAMP)
+    
+  vehicles:
+    - id (INTEGER PRIMARY KEY)
+    - user_id (INTEGER)
+    - vehicle_number (TEXT)
+    - vehicle_type (TEXT)
+    - model (TEXT)
+    - is_primary (BOOLEAN)
+    - created_at (TIMESTAMP)
+    
+  admins:
+    - id (INTEGER PRIMARY KEY)
+    - username (TEXT UNIQUE)
+    - password (TEXT)
+    - created_at (TIMESTAMP)
+
+# Development Configuration
+development:
+  debug: true
+  host: "127.0.0.1"
+  port: 5000
+  reload: true
+  
+# Production Configuration
+production:
+  debug: false
+  host: "0.0.0.0"
+  port: 5000
+  reload: false 

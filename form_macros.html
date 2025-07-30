@@ -1,0 +1,74 @@
+{# Form Field Macros #}
+
+{% macro input_field(name, label, type="text", placeholder="", value="", required=true, extra_attrs="") %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <input type="{{ type }}" 
+           class="form-control" 
+           id="{{ name }}" 
+           name="{{ name }}" 
+           placeholder="{{ placeholder }}"
+           value="{{ value }}"
+           {% if required %}required{% endif %}
+           {{ extra_attrs|safe }}>
+</div>
+{% endmacro %}
+
+{% macro select_field(name, label, options, selected="", required=true) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <select class="form-control" id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %}>
+        {% for value, text in options %}
+            <option value="{{ value }}" {% if value == selected %}selected{% endif %}>
+                {{ text }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
+{% macro textarea_field(name, label, placeholder="", value="", rows=3, required=true) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <textarea class="form-control" 
+              id="{{ name }}" 
+              name="{{ name }}" 
+              rows="{{ rows }}"
+              placeholder="{{ placeholder }}"
+              {% if required %}required{% endif %}>{{ value }}</textarea>
+</div>
+{% endmacro %}
+
+{% macro price_field(name, label, placeholder="", value="", required=true) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <div class="input-group">
+        <span class="input-group-text">₹</span>
+        <input type="number" 
+               class="form-control" 
+               id="{{ name }}" 
+               name="{{ name }}" 
+               placeholder="{{ placeholder }}"
+               value="{{ value }}"
+               min="1" 
+               step="0.5"
+               {% if required %}required{% endif %}>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro card(title, icon="", extra_classes="") %}
+<div class="card {{ extra_classes }}">
+    {% if title %}
+    <div class="card-header">
+        <h5 class="mb-0">
+            {% if icon %}<i class="fas fa-{{ icon }} me-2"></i>{% endif %}
+            {{ title }}
+        </h5>
+    </div>
+    {% endif %}
+    <div class="card-body">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %} 

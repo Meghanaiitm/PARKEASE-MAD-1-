@@ -1,0 +1,24 @@
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+            <i class="fas fa-car me-2"></i>ParkEase
+        </a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-home me-1"></i>Dashboard
+            </a>
+            <a class="nav-link {{ 'active' if request.endpoint == 'user_search' }}" href="{{ url_for('user_search') }}">
+                <i class="fas fa-search me-1"></i>Search
+            </a>
+            <a class="nav-link {{ 'active' if request.endpoint == 'user_summary' }}" href="{{ url_for('user_summary') }}">
+                <i class="fas fa-chart-bar me-1"></i>Summary
+            </a>
+            <a class="nav-link {{ 'active' if request.endpoint == 'profile' }}" href="{{ url_for('profile') }}">
+                <i class="fas fa-user me-1"></i>Profile
+            </a>
+            <a class="nav-link" href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt me-1"></i>Logout
+            </a>
+        </div>
+    </div>
+</nav> 

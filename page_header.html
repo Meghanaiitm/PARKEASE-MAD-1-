@@ -1,0 +1,17 @@
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-2">{{ title }}</h1>
+            {% if subtitle %}
+                <p class="mb-0 opacity-75">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        {% if back_url %}
+            <div class="col-md-4 text-end">
+                <a href="{{ back_url }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>{{ back_text|default('Back') }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div> 
